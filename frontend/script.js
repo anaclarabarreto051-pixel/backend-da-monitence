@@ -1,52 +1,37 @@
-const form = document.getElementById('registrationForm');
+const form = document.querySelector("form");
 
-form.addEventListener('submit', function(event) {
-    event.preventDefault();
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const phone = document.getElementById('phone').value;
+  const payload = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+    phone: document.getElementById("phone").value,
+  };
 
-    if (!name || !email || !password || !phone) {
-        alert('Please fill in all fields');
-        return;
+  try {
+    const response = await fetch("http://localhost:8081/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await response.text(); // pega resposta como texto primeiro
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch {}
+
+    if (!response.ok) {
+      console.error("Erro HTTP:", response.status, data || text);
+      alert(`Erro ao cadastrar (HTTP ${response.status})`);
+      return;
     }
 
-const payload = {
-  name: document.getElementById('name').value,
-  email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-   phone: document.getElementById('phone').value
-};
-
-console.log(payload);
-
-  //  event.preventDefault();
-    //const name = document.getElementById('name').value;
-   // const email = document.getElementById('email').value;
-  //  const password = document.getElementById('password').value;
-   // const phone = document.getElementById('phone').value;
-   // console.log({ name, email, password, phone });
-
-fetch('http://localhost:8080/api/users', {   
-  method: 'POST',
-    headers: {
-       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-})
-.then((response) => {
-    console.log('Status:', response.status);
-        return response.json();
-})
-.then(data => {
-    console.log('Success:', data); 
-    alert('Usuário cadastrado com sucesso!');
+    console.log("Sucesso:", data);
+    alert("Usuário cadastrado com sucesso!");
     form.reset();
-})
-.catch(error => {
-    console.error('Error:', error);
-    alert('Erro ao cadastrar usuário. Por favor, tente novamente.');
-});
+  } catch (error) {
+    console.error("Erro de rede:", error);
+    alert("Falha de rede. O backend tá ligado?");
+  }
 });
